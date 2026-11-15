@@ -388,7 +388,9 @@ export const retryFailedSync = async (sheetConfigId) => {
 };
 
 export const getSyncLogs = async (sheetConfigId, page = 1, limit = 20) => {
-  const offset = (page - 1) * limit;
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  const limitNum = Math.max(1, parseInt(limit, 10) || 20);
+  const offset = (pageNum - 1) * limitNum;
   const { count, rows } = await SheetSyncLog.findAndCountAll({
     where: { sheetConfigId },
     include: [
@@ -399,15 +401,15 @@ export const getSyncLogs = async (sheetConfigId, page = 1, limit = 20) => {
       },
     ],
     order: [['createdAt', 'DESC']],
-    limit,
+    limit: limitNum,
     offset,
   });
 
   return {
     total: count,
-    page: parseInt(page),
-    limit: parseInt(limit),
-    totalPages: Math.ceil(count / limit),
+    page: pageNum,
+    limit: limitNum,
+    totalPages: Math.ceil(count / limitNum),
     logs: rows,
   };
 };

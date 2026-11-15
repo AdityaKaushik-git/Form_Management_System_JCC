@@ -42,6 +42,7 @@ export default (sequelize) => {
   ApplicationStatusHistory.associate = (models) => {
     ApplicationStatusHistory.belongsTo(models.Application, { foreignKey: 'applicationId', as: 'application', onDelete: 'CASCADE' });
     ApplicationStatusHistory.belongsTo(models.User, { foreignKey: 'changedBy', as: 'changedByUser' });
+    ApplicationStatusHistory.belongsTo(models.User, { foreignKey: 'changedBy', as: 'changer' });
   };
 
   return ApplicationStatusHistory;

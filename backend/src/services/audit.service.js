@@ -22,7 +22,9 @@ export const getAuditLogs = async ({ page = 1, limit = 25, action, entity }) => 
   if (action) where.action = action;
   if (entity) where.entity = entity;
 
-  const offset = (page - 1) * limit;
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  const limitNum = Math.max(1, parseInt(limit, 10) || 25);
+  const offset = (pageNum - 1) * limitNum;
 
   const { count, rows } = await AuditLog.findAndCountAll({
     where,
@@ -34,15 +36,15 @@ export const getAuditLogs = async ({ page = 1, limit = 25, action, entity }) => 
       },
     ],
     order: [['createdAt', 'DESC']],
-    limit,
+    limit: limitNum,
     offset,
   });
 
   return {
     total: count,
-    page: parseInt(page),
-    limit: parseInt(limit),
-    totalPages: Math.ceil(count / limit),
+    page: pageNum,
+    limit: limitNum,
+    totalPages: Math.ceil(count / limitNum),
     logs: rows,
   };
 };
