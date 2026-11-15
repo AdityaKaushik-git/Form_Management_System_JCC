@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import Footer from '../components/common/Footer.jsx';
-import { LayoutDashboard, FileText, History, User, LogOut } from 'lucide-react';
+import { LayoutDashboard, FileText, History, User, LogOut, GraduationCap } from 'lucide-react';
 
 const StudentLayout = () => {
   const { user, logout } = useAuth();

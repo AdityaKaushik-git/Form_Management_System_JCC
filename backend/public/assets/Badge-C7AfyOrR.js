@@ -1,1 +1,0 @@
-import{j as o}from"./index-D4mBG7sy.js";import"./vendor-react-Cu7BfbK5.js";import{g as a}from"./helpers-B_AprbCV.js";const x=({children:t,variant:e,className:r=""})=>{const s=e?a(e):"bg-gray-100 text-gray-700 border-gray-200";return o.jsx("span",{className:`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${s} ${r}`,children:t})};export{x as B};

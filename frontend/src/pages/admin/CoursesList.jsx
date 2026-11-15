@@ -9,7 +9,7 @@ import Textarea from '../../components/common/Textarea.jsx';
 import Modal from '../../components/common/Modal.jsx';
 import Badge from '../../components/common/Badge.jsx';
 import ConfirmDialog from '../../components/common/ConfirmDialog.jsx';
-import { Plus, Edit2, Trash2, Zap, FileSpreadsheet, CheckCircle2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Zap, FileSpreadsheet, CheckCircle2, GraduationCap } from 'lucide-react';
 
 const CoursesList = () => {
   const [courses, setCourses] = useState([]);
