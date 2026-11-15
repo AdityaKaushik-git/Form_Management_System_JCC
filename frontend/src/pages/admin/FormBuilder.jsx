@@ -20,6 +20,7 @@ import {
   AlertCircle,
   Copy,
   Layers,
+  FileSpreadsheet,
 } from 'lucide-react';
 
 const FormBuilder = () => {
@@ -48,6 +49,10 @@ const FormBuilder = () => {
 
   // Dynamic Fields
   const [fields, setFields] = useState([]);
+
+  // Google Sheets Link
+  const [spreadsheetUrl, setSpreadsheetUrl] = useState('');
+  const [worksheetName, setWorksheetName] = useState('Sheet1');
 
   // Applicable Subjects
   const [selectedSubjectIds, setSelectedSubjectIds] = useState([]);
@@ -87,6 +92,14 @@ const FormBuilder = () => {
           setIsPermanentActive(f.isPermanentActive || false);
           setFields(f.fields || []);
           setSelectedSubjectIds((f.formSubjects || []).map((fs) => fs.subjectId || fs.subject?.id));
+          try {
+            const sheetsRes = await adminService.getSheets(id);
+            const firstSheet = sheetsRes.data?.[0];
+            if (firstSheet) {
+              setSpreadsheetUrl(firstSheet.spreadsheetUrl || '');
+              setWorksheetName(firstSheet.worksheetName || 'Sheet1');
+            }
+          } catch (_) {}
         } else {
           // Defaults for new form
           const nowStr = new Date().toISOString().slice(0, 16);
@@ -204,12 +217,27 @@ const FormBuilder = () => {
         subjectIds: selectedSubjectIds,
       };
 
+      let targetFormId = id;
       if (id) {
         await adminService.updateForm(id, payload);
         if (publish) await adminService.publishForm(id);
       } else {
         const created = await adminService.createForm(payload);
-        if (publish) await adminService.publishForm(created.data.id);
+        targetFormId = created.data.id;
+        if (publish) await adminService.publishForm(targetFormId);
+      }
+
+      // Auto-connect Google Sheet if link is provided
+      if (spreadsheetUrl && spreadsheetUrl.trim()) {
+        try {
+          await adminService.addSheet(targetFormId, {
+            displayName: title || 'Examination Reappear Sheet',
+            spreadsheetUrl: spreadsheetUrl.trim(),
+            worksheetName: worksheetName.trim() || 'Sheet1',
+          });
+        } catch (sheetErr) {
+          console.warn('Could not auto-link Google Sheet:', sheetErr);
+        }
       }
 
       navigate('/admin/forms');
@@ -619,6 +647,52 @@ const FormBuilder = () => {
                   </div>
                 );
               })}
+            </div>
+          </div>
+
+          {/* SECTION 5: Google Sheets Real-Time Live Sync */}
+          <div className="bg-white rounded-xl border border-gray-100 shadow-card p-6 space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+              <FileSpreadsheet className="w-5 h-5 text-emerald-600" />
+              <div>
+                <h3 className="text-sm font-bold text-content-primary">
+                  5. Google Spreadsheet Live Sync (Optional)
+                </h3>
+                <p className="text-[11px] text-content-muted">
+                  Provide your Google Sheet link to automatically sync every student submission in real-time
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3 bg-emerald-50/70 border border-emerald-200 rounded-xl text-xs text-emerald-900 space-y-1">
+              <span className="font-bold flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                Automatic Real-Time Submissions Forwarding
+              </span>
+              <p className="text-[11px] text-emerald-800">
+                Whenever a student submits an application for this form, a new row will be immediately added to your Google Sheet with their reference number, enrollment number, student name, and selected reappear subjects.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="sm:col-span-2">
+                <Input
+                  label="Google Spreadsheet URL / Link"
+                  placeholder="https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit"
+                  value={spreadsheetUrl}
+                  onChange={(e) => setSpreadsheetUrl(e.target.value)}
+                  helperText="Ensure the sheet is shared with your Google Service Account email as Editor"
+                />
+              </div>
+              <div>
+                <Input
+                  label="Worksheet Tab Name"
+                  placeholder="Sheet1"
+                  value={worksheetName}
+                  onChange={(e) => setWorksheetName(e.target.value)}
+                  helperText="Default is Sheet1"
+                />
+              </div>
             </div>
           </div>
 
