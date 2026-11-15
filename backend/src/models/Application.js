@@ -69,6 +69,7 @@ export default (sequelize) => {
     Application.belongsTo(models.User, { foreignKey: 'reviewedBy', as: 'reviewer' });
     Application.hasMany(models.ApplicationFieldValue, { foreignKey: 'applicationId', as: 'fieldValues', onDelete: 'CASCADE' });
     Application.hasMany(models.ApplicationSubject, { foreignKey: 'applicationId', as: 'subjects', onDelete: 'CASCADE' });
+    Application.hasMany(models.ApplicationSubject, { foreignKey: 'applicationId', as: 'applicationSubjects', onDelete: 'CASCADE' });
     Application.hasMany(models.ApplicationStatusHistory, { foreignKey: 'applicationId', as: 'statusHistory', onDelete: 'CASCADE' });
     Application.hasMany(models.SheetSyncLog, { foreignKey: 'applicationId', as: 'syncLogs' });
   };

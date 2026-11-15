@@ -41,10 +41,12 @@ const PASSWORD_RESET_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
 // Cookie helper
 // ---------------------------------------------------------------------------
 
+const isProduction = config.env === 'production';
 const cookieDefaults = {
   httpOnly: true,
-  secure: config.nodeEnv === 'production',
-  sameSite: config.nodeEnv === 'production' ? 'strict' : 'lax',
+  secure: isProduction,
+  sameSite: isProduction ? (config.cookie?.sameSite || 'lax') : 'lax',
+  domain: config.cookie?.domain || undefined,
   path: '/',
 };
 
@@ -378,7 +380,7 @@ export const logout = asyncHandler(async (req, res) => {
 // POST /refresh – Refresh Access Token (token rotation)
 // ---------------------------------------------------------------------------
 export const refreshAccessToken = asyncHandler(async (req, res) => {
-  const oldRefreshToken = req.cookies?.refreshToken;
+  const oldRefreshToken = req.cookies?.refreshToken || req.body?.refreshToken || req.headers['x-refresh-token'];
   if (!oldRefreshToken) {
     throw new ApiError(401, 'Refresh token not found');
   }

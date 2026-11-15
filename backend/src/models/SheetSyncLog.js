@@ -48,6 +48,7 @@ export default (sequelize) => {
 
   SheetSyncLog.associate = (models) => {
     SheetSyncLog.belongsTo(models.SheetConfiguration, { foreignKey: 'sheetConfigId', as: 'sheetConfig', onDelete: 'CASCADE' });
+    SheetSyncLog.belongsTo(models.SheetConfiguration, { foreignKey: 'sheetConfigId', as: 'sheetConfiguration', onDelete: 'CASCADE' });
     SheetSyncLog.belongsTo(models.Application, { foreignKey: 'applicationId', as: 'application', onDelete: 'SET NULL' });
   };
 
