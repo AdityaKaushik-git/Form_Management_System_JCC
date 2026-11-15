@@ -22,4 +22,5 @@ const logger = pino({
   base: env === 'production' ? { pid: process.pid } : undefined,
 });
 
+export { logger };
 export default logger;

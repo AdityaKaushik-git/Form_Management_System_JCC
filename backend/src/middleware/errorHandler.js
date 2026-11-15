@@ -123,4 +123,5 @@ const errorHandler = (err, req, res, next) => {
   return ApiResponse.error(res, message, statusCode, errors);
 };
 
+export { errorHandler };
 export default errorHandler;

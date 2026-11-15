@@ -53,4 +53,5 @@ const validate = (schemas) => {
   };
 };
 
+export { validate };
 export default validate;
