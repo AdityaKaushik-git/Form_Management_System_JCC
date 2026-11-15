@@ -223,7 +223,7 @@ async function connectAndSyncDatabase() {
     dbConnectionError = err;
 
     console.error('\n' + '='.repeat(64));
-    console.error('⚠️  DATABASE CONNECTION WARNING:');
+    console.error('[WARN] DATABASE CONNECTION WARNING:');
     console.error('Could not connect to MariaDB:', err.message);
     if (err.original) {
       console.error('Original DB error:', err.original.message || err.original);
@@ -237,7 +237,7 @@ async function connectAndSyncDatabase() {
     console.error(`- SSL enabled: ${process.env.DATABASE_SSL === 'true' || process.env.DATABASE_SSL === '1'}`);
     console.error(`- DATABASE_URL present: ${Boolean(process.env.DATABASE_URL || process.env.MARIADB_URL)}`);
     console.error('-'.repeat(64));
-    console.error('👉 ACTION REQUIRED: Configure MariaDB in Render Dashboard (Environment):');
+    console.error('[ACTION REQUIRED] Configure MariaDB in Render Dashboard (Environment):');
     console.error('  DATABASE_HOST     = <your-mariadb-host>');
     console.error('  DATABASE_NAME     = <your-database-name>');
     console.error('  DATABASE_USER     = <your-database-user>');

@@ -19,6 +19,7 @@ import {
   Layers,
   Building,
   Bell,
+  Shield,
   ShieldAlert,
 } from 'lucide-react';
 
@@ -73,16 +74,21 @@ const AdminLayout = () => {
             {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
 
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center text-white font-bold text-sm shadow-xs shrink-0">
-              JCC
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white shadow-xs shrink-0">
+              <Shield className="w-4 h-4 text-primary-400" />
             </div>
             <div>
-              <h1 className="text-sm font-bold text-content-primary leading-tight">
-                JCC Reappear Exam
-              </h1>
-              <p className="text-[10px] text-content-muted leading-none mt-0.5">
-                Admin Portal • Rohini Sector 3
+              <div className="flex items-center gap-1.5">
+                <h1 className="text-sm font-bold text-slate-900 leading-tight">
+                  JCC Administration
+                </h1>
+                <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                  Exam Branch
+                </span>
+              </div>
+              <p className="text-[10px] text-slate-500 leading-none mt-0.5">
+                Reappear Examination System • Rohini Sector 3, Delhi
               </p>
             </div>
           </div>

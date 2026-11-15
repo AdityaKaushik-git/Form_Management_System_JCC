@@ -60,11 +60,11 @@ const AdminLogin = () => {
       )}
 
       {/* Demo Admin Credentials Box */}
-      <div className="mb-5 p-3.5 bg-amber-50/80 border border-amber-200 rounded-xl text-xs space-y-2">
+      <div className="mb-5 p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-2">
         <div className="flex items-center justify-between">
-          <span className="font-bold text-amber-900 flex items-center gap-1.5">
-            <span className="inline-block w-2 h-2 rounded-full bg-amber-600 animate-pulse"></span>
-            Demo Administrator Credentials
+          <span className="font-semibold text-slate-800 flex items-center gap-1.5">
+            <ShieldCheck className="w-4 h-4 text-primary-500" />
+            Authorized Examination Account
           </span>
           <button
             type="button"
@@ -72,17 +72,17 @@ const AdminLogin = () => {
               setValue('email', 'admin@jcc.edu.in');
               setValue('password', 'Admin@12345!');
             }}
-            className="text-[11px] font-bold text-amber-800 hover:text-amber-900 bg-white px-2 py-0.5 rounded-md border border-amber-200 shadow-xs hover:bg-amber-50 transition-colors"
+            className="text-[11px] font-semibold text-primary-600 hover:text-primary-700 bg-white px-2.5 py-1 rounded-md border border-slate-200 shadow-xs hover:bg-primary-50 transition-colors touch-manipulation"
           >
             Auto-fill
           </button>
         </div>
-        <div className="text-[11px] text-amber-800 space-y-0.5 font-mono">
-          <div>Email: <strong className="font-bold text-amber-950">admin@jcc.edu.in</strong></div>
-          <div>Password: <strong className="font-bold text-amber-950">Admin@12345!</strong></div>
+        <div className="text-[11px] text-slate-700 space-y-0.5 font-mono">
+          <div>Email: <strong className="font-bold text-slate-900">admin@jcc.edu.in</strong></div>
+          <div>Password: <strong className="font-bold text-slate-900">Admin@12345!</strong></div>
         </div>
-        <p className="text-[10px] text-amber-700 pt-0.5 border-t border-amber-100">
-          Authorized Examination Branch • Rohini Sector 3
+        <p className="text-[10px] text-slate-500 pt-1 border-t border-slate-200">
+          Authorized Examination Branch • Rohini Sector 3, Delhi
         </p>
       </div>
 

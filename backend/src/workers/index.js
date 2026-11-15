@@ -62,14 +62,14 @@ async function start() {
       logger.info('Worker: database connection established');
       dbReady = true;
     } catch (err) {
-      console.error('⚠️  Worker: Database connection failed:', err.message);
+      console.error('[WARN] Worker: Database connection failed:', err.message);
       console.error('Worker waiting 10 seconds before retrying database connection...');
       await new Promise(r => setTimeout(r, 10000));
     }
   }
 
   if (!redis) {
-    console.warn('⚠️  Worker: Redis client not initialized or REDIS_URL not configured.');
+    console.warn('[WARN] Worker: Redis client not initialized or REDIS_URL not configured.');
     console.warn('Worker will idle until Redis is available.');
     // Idle loop to keep container alive and prevent restart storms
     setInterval(() => {

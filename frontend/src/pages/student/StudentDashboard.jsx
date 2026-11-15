@@ -38,25 +38,26 @@ const StudentDashboard = () => {
   return (
     <div className="space-y-6">
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl p-6 sm:p-8 text-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 text-white shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <span className="inline-block px-2.5 py-0.5 rounded-full bg-white/20 text-white text-[11px] font-semibold mb-2">
-            Student Portal
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            Welcome, {user?.fullName || 'Student'}!
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-800 border border-slate-700/80 text-primary-400 text-[11px] font-semibold mb-2.5">
+            <GraduationCap className="w-3.5 h-3.5 text-primary-400" />
+            <span>Student Examination Portal</span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+            Welcome, {user?.fullName || 'Student'}
           </h2>
-          <p className="text-white/80 text-xs sm:text-sm mt-1 max-w-xl">
-            Enrollment No: <span className="font-bold text-white">{profile?.enrollmentNumber || 'N/A'}</span> •{' '}
+          <p className="text-slate-300 text-xs sm:text-sm mt-1 max-w-xl">
+            Enrollment No: <span className="font-semibold text-white font-mono">{profile?.enrollmentNumber || 'N/A'}</span> •{' '}
             {profile?.course?.name ? `${profile.course.name} (${profile.course.shortName})` : 'Course Not Assigned'}
           </p>
         </div>
 
         <div className="shrink-0">
           <Link to="/student/forms">
-            <Button variant="secondary" className="shadow-sm">
-              View Available Forms
-              <ArrowRight className="w-4 h-4" />
+            <Button variant="primary" className="shadow-xs">
+              <span>View Available Forms</span>
+              <ArrowRight className="w-4 h-4 ml-1.5" />
             </Button>
           </Link>
         </div>

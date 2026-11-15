@@ -20,6 +20,7 @@ import {
   Trash2,
   Zap,
   Sparkles,
+  Wand2,
   AlertCircle,
 } from 'lucide-react';
 
@@ -290,10 +291,10 @@ const FormsList = () => {
             onClick={openAutoGenerateModal}
             variant="outline"
             size="sm"
-            className="border-primary-200 text-primary-700 hover:bg-primary-50 font-semibold"
-            icon={Zap}
+            className="border-primary-200 text-primary-700 hover:bg-primary-50 font-medium"
+            icon={Wand2}
           >
-            ⚡ Auto-Generate Forms
+            Auto-Generate Forms
           </Button>
           <Link to="/admin/forms/create">
             <Button icon={Plus} size="sm">
@@ -369,7 +370,7 @@ const FormsList = () => {
       <Modal
         isOpen={isAutoModalOpen}
         onClose={() => setIsAutoModalOpen(false)}
-        title="⚡ Automated Examination Form Generator"
+        title="Automated Examination Form Generator"
       >
         <div className="space-y-4">
           <div className="p-3.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl text-xs space-y-1.5">

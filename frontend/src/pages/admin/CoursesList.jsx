@@ -195,11 +195,11 @@ const CoursesList = () => {
             onClick={handleQuickLoad}
             variant="outline"
             size="sm"
-            icon={Zap}
+            icon={GraduationCap}
             isLoading={quickLoadLoading}
-            className="border-amber-200 text-amber-800 hover:bg-amber-50"
+            className="border-primary-200 text-primary-700 hover:bg-primary-50 font-medium"
           >
-            ⚡ Load Standard JCC Courses
+            Load Standard Curriculum
           </Button>
           <Link to="/admin/subjects">
             <Button

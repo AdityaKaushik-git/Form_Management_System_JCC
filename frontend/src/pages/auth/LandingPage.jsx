@@ -20,15 +20,15 @@ const LandingPage = () => {
       <header className="border-b border-gray-100 bg-white/90 backdrop-blur-md sticky top-0 z-20 pt-safe gpu-layer">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary-500 flex items-center justify-center text-white font-bold text-base sm:text-lg shadow-xs shrink-0">
-              JCC
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white shadow-xs shrink-0">
+              <GraduationCap className="w-5 h-5 text-white" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-xs sm:text-base font-bold text-content-primary leading-tight truncate">
-                JCC, Rohini Sector 3
+              <h1 className="text-xs sm:text-base font-bold text-slate-900 leading-tight truncate">
+                JCC Examination Branch
               </h1>
-              <p className="text-[10px] sm:text-xs text-content-muted truncate">
-                Reappear Exam Management System
+              <p className="text-[10px] sm:text-xs text-slate-500 truncate">
+                Rohini Sector 3, Delhi • Reappear Form Portal
               </p>
             </div>
           </div>
@@ -50,18 +50,18 @@ const LandingPage = () => {
 
       {/* Hero Section */}
       <main className="flex-1">
-        <section className="py-16 sm:py-24 px-4 sm:px-6 max-w-7xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-50 border border-primary-200 text-primary-700 text-xs font-semibold mb-6">
-            <Clock className="w-3.5 h-3.5" />
-            Official Examination Portal • Session 2026-2027
+        <section className="py-14 sm:py-20 px-4 sm:px-6 max-w-7xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold mb-6">
+            <Clock className="w-3.5 h-3.5 text-primary-500" />
+            Official Examination Portal • Academic Session 2026-2027
           </div>
 
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-content-primary tracking-tight max-w-3xl mx-auto">
-            Seamless College <span className="text-primary-500">Reappear Examination</span> Form Management
+          <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight max-w-3xl mx-auto leading-tight">
+            Institutional <span className="text-primary-500">Reappear Examination</span> Portal
           </h1>
 
-          <p className="mt-4 text-base sm:text-lg text-content-secondary max-w-2xl mx-auto">
-            Fast, secure, and unified platform for JCC students to apply for reappear examinations and for administrators to manage forms and automate Google Sheets reporting.
+          <p className="mt-4 text-sm sm:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            Authorized digital platform for JCC students to apply for reappear examinations and for the examination branch to automate curriculum progression and Google Sheets synchronization.
           </p>
 
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">

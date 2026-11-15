@@ -10,6 +10,7 @@ import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
 import { downloadBlob } from '../../utils/helpers.js';
 import {
   CheckCircle2,
+  Check,
   AlertCircle,
   FileDown,
   ArrowRight,
@@ -220,7 +221,7 @@ const ApplicationForm = () => {
                         : 'bg-gray-100 text-content-muted'
                     }`}
                   >
-                    {currentStep > s.num ? '✓' : s.num}
+                    {currentStep > s.num ? <Check className="w-3.5 h-3.5 stroke-[2.5]" /> : s.num}
                   </div>
                   <span
                     className={`hidden sm:inline text-xs font-medium ${
