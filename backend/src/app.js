@@ -60,20 +60,42 @@ app.set('trust proxy', 1);
 let isDbConnected = false;
 let dbConnectionError = null;
 
-app.get('/health', (_req, res) => {
-  return ApiResponse.success(res, {
-    status: isDbConnected ? 'ok' : 'degraded',
-    database: isDbConnected ? 'connected' : 'disconnected',
-    databaseError: isDbConnected ? null : (dbConnectionError?.message || 'Database not connected'),
-    uptime: process.uptime(),
-    timestamp: new Date().toISOString(),
-    environment: config.env,
-  }, isDbConnected ? 'Server is healthy' : 'Server is running in degraded mode (database not connected)');
-});
+const handleHealth = (_req, res) => {
+  return ApiResponse.success(
+    res,
+    {
+      status: isDbConnected ? 'ok' : 'degraded',
+      service: 'JCC Reappear Examination System',
+      database: isDbConnected ? 'connected' : 'disconnected',
+      databaseError: isDbConnected ? null : (dbConnectionError?.message || 'Database not connected'),
+      uptime: Math.floor(process.uptime()),
+      timestamp: new Date().toISOString(),
+      environment: config.env,
+    },
+    isDbConnected ? 'Server is healthy' : 'Server is running in degraded mode (database not connected)'
+  );
+};
 
-// Guard API routes if database is disconnected (allow /api/health)
+const handlePing = (_req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.status(200).send('pong');
+};
+
+// Root-level health & ping (Standard for UptimeRobot, Render & monitoring probes)
+app.get('/health', handleHealth);
+app.head('/health', handleHealth);
+app.get('/ping', handlePing);
+app.head('/ping', handlePing);
+
+// API-level health & ping
+app.get('/api/health', handleHealth);
+app.head('/api/health', handleHealth);
+app.get('/api/ping', handlePing);
+app.head('/api/ping', handlePing);
+
+// Guard API routes if database is disconnected (allow /api/health and /api/ping)
 app.use('/api', (req, res, next) => {
-  if (req.path === '/health') return next();
+  if (req.path === '/health' || req.path === '/ping') return next();
   if (!isDbConnected) {
     return res.status(503).json({
       success: false,
@@ -104,7 +126,11 @@ if (fs.existsSync(frontendDist)) {
 
   // Fallback non-API routes to index.html for React Router DOM
   app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api') || req.path === '/health') {
+    if (
+      req.path.startsWith('/api') ||
+      req.path === '/health' ||
+      req.path === '/ping'
+    ) {
       return next();
     }
     const indexPath = path.join(frontendDist, 'index.html');
@@ -226,6 +252,37 @@ async function connectAndSyncDatabase() {
   }
 }
 
+// ─── Keep-alive self-ping for free tier hosting (Render sleeps after 15m) ───
+function initKeepAlivePing() {
+  const pingUrl =
+    process.env.SELF_PING_URL ||
+    process.env.RENDER_EXTERNAL_URL ||
+    process.env.FRONTEND_URL ||
+    (config.env === 'production' ? 'https://form-management-system-jcc.onrender.com' : null);
+
+  if (!pingUrl) return;
+
+  const target = `${pingUrl.replace(/\/+$/, '')}/ping`;
+  logger.info({ target }, 'Initialized keep-alive self-ping mechanism (runs every 13 minutes)');
+
+  // Ping every 13 minutes (780,000 ms) to prevent Render inactivity sleep
+  const intervalMs = 13 * 60 * 1000;
+  const pingTimer = setInterval(async () => {
+    try {
+      if (typeof fetch === 'function') {
+        const res = await fetch(target, {
+          headers: { 'User-Agent': 'JCC-Reappear-KeepAlive/1.0' },
+        });
+        logger.debug({ status: res.status, url: target }, 'Keep-alive self-ping response received');
+      }
+    } catch (err) {
+      logger.warn({ err: err.message, url: target }, 'Keep-alive self-ping attempt failed');
+    }
+  }, intervalMs);
+
+  pingTimer.unref();
+}
+
 // ─── Database & server startup ───────────────────────────────
 async function startServer() {
   // Start HTTP & WebSocket server immediately so Render health checks pass
@@ -235,6 +292,9 @@ async function startServer() {
       `Server is running on http://${config.host}:${config.port}`
     );
   });
+
+  // Start keep-alive self-ping background worker
+  initKeepAlivePing();
 
   // Attempt database connection
   const connected = await connectAndSyncDatabase();
