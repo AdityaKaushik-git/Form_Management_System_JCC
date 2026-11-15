@@ -56,6 +56,20 @@ app.use(generalLimiter);
 // ─── Trust proxy (for rate limiting behind reverse proxy) ────
 app.set('trust proxy', 1);
 
+// ─── Root welcome route ───────────────────────────────────────
+app.get('/', (_req, res) => {
+  return res.json({
+    institution: 'JCC, Rohini Sector 3, Delhi',
+    name: 'JCC Reappear Examination Form Management System API',
+    status: isDbConnected ? 'online' : 'degraded',
+    database: isDbConnected ? 'connected' : 'disconnected',
+    health: '/health',
+    api: '/api',
+    designer: 'Designed by Aditya Kaushik',
+    version: '1.0.0',
+  });
+});
+
 // ─── Health check & DB status ────────────────────────────────
 let isDbConnected = false;
 let dbConnectionError = null;
