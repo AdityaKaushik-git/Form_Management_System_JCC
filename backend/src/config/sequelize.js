@@ -3,13 +3,23 @@ import config from './index.js';
 import logger from '../utils/logger.js';
 
 const dbConfig = config.db || {};
-const dbUrl = process.env.DATABASE_URL || process.env.MARIADB_URL || dbConfig.url;
-const isSsl = process.env.DATABASE_SSL === 'true' || process.env.DATABASE_SSL === '1';
+const dbUrl = process.env.DATABASE_URL || process.env.MARIADB_URL || process.env.MYSQL_URL || dbConfig.url;
+
+// Auto-detect dialect: mysql if URL starts with mysql: or host contains mysql, otherwise mariadb
+const dialect = process.env.DATABASE_DIALECT || (
+  (dbUrl && dbUrl.startsWith('mysql:')) ||
+  (dbConfig.host && dbConfig.host.toLowerCase().includes('mysql'))
+    ? 'mysql'
+    : 'mariadb'
+);
+
+const isSsl = process.env.DATABASE_SSL === 'true' ||
+              process.env.DATABASE_SSL === '1' ||
+              (dbUrl && (dbUrl.includes('ssl-mode=REQUIRED') || dbUrl.includes('sslmode=require')));
 
 const commonOptions = {
-  dialect: 'mariadb',
+  dialect,
   dialectOptions: {
-    timezone: 'Asia/Kolkata',
     ...(isSsl ? { ssl: { rejectUnauthorized: false } } : {}),
     ...(dbConfig.dialectOptions || {}),
   },
