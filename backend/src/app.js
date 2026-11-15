@@ -56,20 +56,6 @@ app.use(generalLimiter);
 // ─── Trust proxy (for rate limiting behind reverse proxy) ────
 app.set('trust proxy', 1);
 
-// ─── Root welcome route ───────────────────────────────────────
-app.get('/', (_req, res) => {
-  return res.json({
-    institution: 'JCC, Rohini Sector 3, Delhi',
-    name: 'JCC Reappear Examination Form Management System API',
-    status: isDbConnected ? 'online' : 'degraded',
-    database: isDbConnected ? 'connected' : 'disconnected',
-    health: '/health',
-    api: '/api',
-    designer: 'Designed by Aditya Kaushik',
-    version: '1.0.0',
-  });
-});
-
 // ─── Health check & DB status ────────────────────────────────
 let isDbConnected = false;
 let dbConnectionError = null;
@@ -102,7 +88,32 @@ app.use('/api', (req, res, next) => {
 // ─── API routes ──────────────────────────────────────────────
 app.use('/api', routes);
 
-// ─── 404 handler ─────────────────────────────────────────────
+// ─── Serve React frontend (SPA) if dist folder exists ─────────
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const frontendDist = path.resolve(__dirname, '../../frontend/dist');
+
+if (fs.existsSync(frontendDist)) {
+  app.use(express.static(frontendDist));
+
+  // Fallback non-API routes to index.html for React Router DOM
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path === '/health') {
+      return next();
+    }
+    const indexPath = path.join(frontendDist, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      return res.sendFile(indexPath);
+    }
+    next();
+  });
+}
+
+// ─── 404 handler (for unmatched API endpoints) ───────────────
 app.use((_req, res) => {
   return ApiResponse.error(res, 'Route not found', 404);
 });

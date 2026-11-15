@@ -3,7 +3,11 @@ import config from './index.js';
 import logger from '../utils/logger.js';
 
 const dbConfig = config.db || {};
-const dbUrl = process.env.DATABASE_URL || process.env.MARIADB_URL || process.env.MYSQL_URL || dbConfig.url;
+const rawDbUrl = process.env.DATABASE_URL || process.env.MARIADB_URL || process.env.MYSQL_URL || dbConfig.url;
+// Auto-redirect from defaultdb to our isolated jcc_reappear_exam database if provided
+const dbUrl = rawDbUrl && rawDbUrl.includes('/defaultdb')
+  ? rawDbUrl.replace('/defaultdb', '/jcc_reappear_exam')
+  : rawDbUrl;
 
 // Auto-detect dialect: mysql if URL starts with mysql: or host contains mysql, otherwise mariadb
 const dialect = process.env.DATABASE_DIALECT || (

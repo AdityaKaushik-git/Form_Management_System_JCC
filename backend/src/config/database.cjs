@@ -1,6 +1,9 @@
 require('dotenv').config();
 
-const dbUrl = process.env.DATABASE_URL || process.env.MARIADB_URL || process.env.MYSQL_URL;
+const rawDbUrl = process.env.DATABASE_URL || process.env.MARIADB_URL || process.env.MYSQL_URL;
+const dbUrl = rawDbUrl && rawDbUrl.includes('/defaultdb')
+  ? rawDbUrl.replace('/defaultdb', '/jcc_reappear_exam')
+  : rawDbUrl;
 const isSsl = process.env.DATABASE_SSL === 'true' ||
               process.env.DATABASE_SSL === '1' ||
               (dbUrl && (dbUrl.includes('ssl-mode=REQUIRED') || dbUrl.includes('sslmode=require')));
