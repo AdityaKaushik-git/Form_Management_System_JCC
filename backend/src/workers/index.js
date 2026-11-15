@@ -53,17 +53,31 @@ async function processEmailJob(job) {
  * ─── Bootstrap ───────────────────────────────────────────────
  */
 async function start() {
-  try {
-    await sequelize.authenticate();
-    logger.info('Worker: database connection established');
-  } catch (err) {
-    logger.error({ err }, 'Worker: failed to connect to database');
-    process.exit(1);
+  console.log('[Worker] Starting background worker process...');
+
+  let dbReady = false;
+  while (!dbReady) {
+    try {
+      await sequelize.authenticate();
+      logger.info('Worker: database connection established');
+      dbReady = true;
+    } catch (err) {
+      console.error('⚠️  Worker: Database connection failed:', err.message);
+      console.error('Worker waiting 10 seconds before retrying database connection...');
+      await new Promise(r => setTimeout(r, 10000));
+    }
   }
 
   if (!redis) {
-    logger.error('Worker: Redis not available, cannot start BullMQ workers');
-    process.exit(1);
+    console.warn('⚠️  Worker: Redis client not initialized or REDIS_URL not configured.');
+    console.warn('Worker will idle until Redis is available.');
+    // Idle loop to keep container alive and prevent restart storms
+    setInterval(() => {
+      if (redis) {
+        logger.info('Worker: Redis became available, re-initializing...');
+      }
+    }, 30000);
+    return;
   }
 
   const workerOpts = { connection: redis, concurrency: 5 };

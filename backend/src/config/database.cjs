@@ -23,6 +23,8 @@ module.exports = {
     logging: false,
   },
   production: {
+    use_env_variable: process.env.DATABASE_URL ? 'DATABASE_URL' : (process.env.MARIADB_URL ? 'MARIADB_URL' : undefined),
+    url: process.env.DATABASE_URL || process.env.MARIADB_URL,
     username: process.env.DATABASE_USER,
     password: process.env.DATABASE_PASSWORD,
     database: process.env.DATABASE_NAME,
@@ -31,12 +33,12 @@ module.exports = {
     dialect: 'mariadb',
     dialectOptions: {
       timezone: 'Asia/Kolkata',
-      ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
+      ssl: (process.env.DATABASE_SSL === 'true' || process.env.DATABASE_SSL === '1') ? { rejectUnauthorized: false } : false,
     },
     logging: false,
     pool: {
       max: 10,
-      min: 2,
+      min: 0,
       acquire: 30000,
       idle: 10000,
     },

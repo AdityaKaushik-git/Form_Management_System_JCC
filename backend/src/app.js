@@ -56,14 +56,33 @@ app.use(generalLimiter);
 // ─── Trust proxy (for rate limiting behind reverse proxy) ────
 app.set('trust proxy', 1);
 
-// ─── Health check ────────────────────────────────────────────
+// ─── Health check & DB status ────────────────────────────────
+let isDbConnected = false;
+let dbConnectionError = null;
+
 app.get('/health', (_req, res) => {
   return ApiResponse.success(res, {
-    status: 'ok',
+    status: isDbConnected ? 'ok' : 'degraded',
+    database: isDbConnected ? 'connected' : 'disconnected',
+    databaseError: isDbConnected ? null : (dbConnectionError?.message || 'Database not connected'),
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
     environment: config.env,
-  }, 'Server is healthy');
+  }, isDbConnected ? 'Server is healthy' : 'Server is running in degraded mode (database not connected)');
+});
+
+// Guard API routes if database is disconnected (allow /api/health)
+app.use('/api', (req, res, next) => {
+  if (req.path === '/health') return next();
+  if (!isDbConnected) {
+    return res.status(503).json({
+      success: false,
+      message: 'Database is not connected. Please configure MariaDB environment variables (DATABASE_HOST, DATABASE_USER, DATABASE_PASSWORD, DATABASE_NAME or DATABASE_URL) in Render.',
+      error: 'DATABASE_DISCONNECTED',
+      details: dbConnectionError?.message || null,
+    });
+  }
+  next();
 });
 
 // ─── API routes ──────────────────────────────────────────────
@@ -77,30 +96,122 @@ app.use((_req, res) => {
 // ─── Global error handler ────────────────────────────────────
 app.use(errorHandler);
 
-// ─── Database & server startup ───────────────────────────────
-async function startServer() {
+// ─── Database connection & synchronization ───────────────────
+import models from './models/index.js';
+
+async function connectAndSyncDatabase() {
   try {
-    // Authenticate database connection
     await sequelize.authenticate();
+    isDbConnected = true;
+    dbConnectionError = null;
     logger.info('Database connection established successfully');
 
-    // Sync models in development only
-    if (config.env === 'development') {
-      await sequelize.sync({ alter: true });
-      logger.info('Database models synced (alter mode)');
-    }
-    // In production, rely on migrations only — do not sync
+    try {
+      if (config.env === 'development') {
+        await sequelize.sync({ alter: true });
+        logger.info('Database models synced (alter mode)');
+      } else {
+        await sequelize.sync();
+        logger.info('Database models initialized');
+      }
 
-    // Start listening
-    server.listen(config.port, config.host, () => {
-      logger.info(
-        { port: config.port, host: config.host, env: config.env },
-        `Server is running on http://${config.host}:${config.port}`
-      );
-    });
+      // Seed default institutional settings if not already present
+      if (models.SystemSetting) {
+        const count = await models.SystemSetting.count();
+        if (count === 0) {
+          await models.SystemSetting.bulkCreate([
+            { key: 'INSTITUTION_NAME', value: 'JCC, Rohini Sector 3, Delhi', description: 'College / Institute Name' },
+            { key: 'SYSTEM_NAME', value: 'Reappear Examination Form Management System', description: 'Web Application Title' },
+            { key: 'FOOTER_CREDIT', value: 'Designed by Aditya Kaushik', description: 'Official Designer Credit' },
+            { key: 'SUPPORT_EMAIL', value: 'support@jcc.edu.in', description: 'Student support contact email' },
+          ]);
+          logger.info('Default institutional settings seeded');
+        }
+      }
+
+      // Auto-provision initial admin if ADMIN_EMAIL & ADMIN_PASSWORD env vars are set
+      const adminEmail = process.env.ADMIN_EMAIL;
+      const adminPassword = process.env.ADMIN_PASSWORD;
+      if (adminEmail && adminPassword && models.User && models.AdminProfile) {
+        const existingAdmin = await models.User.findOne({ where: { email: adminEmail.toLowerCase() } });
+        if (!existingAdmin) {
+          const argon2 = await import('argon2');
+          const passwordHash = await argon2.default.hash(adminPassword);
+          const user = await models.User.create({
+            email: adminEmail.toLowerCase(),
+            passwordHash,
+            role: 'admin',
+            isEmailVerified: true,
+            status: 'active',
+          });
+          await models.AdminProfile.create({
+            userId: user.id,
+            fullName: process.env.ADMIN_NAME || 'System Administrator',
+          });
+          logger.info({ email: adminEmail }, 'Initial admin account automatically provisioned');
+        }
+      }
+    } catch (syncErr) {
+      logger.warn({ err: syncErr.message }, 'Database model sync warning');
+    }
+
+    return true;
   } catch (err) {
-    logger.error({ err }, 'Failed to start server');
-    process.exit(1);
+    isDbConnected = false;
+    dbConnectionError = err;
+
+    console.error('\n' + '='.repeat(64));
+    console.error('⚠️  DATABASE CONNECTION WARNING:');
+    console.error('Could not connect to MariaDB:', err.message);
+    if (err.original) {
+      console.error('Original DB error:', err.original.message || err.original);
+    }
+    console.error('-'.repeat(64));
+    console.error('Current DB Configuration in use:');
+    console.error(`- Host: ${config.db?.host || '(not set)'}`);
+    console.error(`- Port: ${config.db?.port || '(not set)'}`);
+    console.error(`- Database: ${config.db?.database || '(not set)'}`);
+    console.error(`- Username: ${config.db?.username || '(not set)'}`);
+    console.error(`- SSL enabled: ${process.env.DATABASE_SSL === 'true' || process.env.DATABASE_SSL === '1'}`);
+    console.error(`- DATABASE_URL present: ${Boolean(process.env.DATABASE_URL || process.env.MARIADB_URL)}`);
+    console.error('-'.repeat(64));
+    console.error('👉 ACTION REQUIRED: Configure MariaDB in Render Dashboard (Environment):');
+    console.error('  DATABASE_HOST     = <your-mariadb-host>');
+    console.error('  DATABASE_NAME     = <your-database-name>');
+    console.error('  DATABASE_USER     = <your-database-user>');
+    console.error('  DATABASE_PASSWORD = <your-database-password>');
+    console.error('  DATABASE_PORT     = 3306 (or provider port)');
+    console.error('  DATABASE_SSL      = true (if required by cloud host like Aiven)');
+    console.error('Or provide a single connection string:');
+    console.error('  DATABASE_URL      = mariadb://user:password@host:port/dbname');
+    console.error('='.repeat(64) + '\n');
+    logger.warn({ err: err.message }, 'Database connection failed, server running in degraded mode');
+    return false;
+  }
+}
+
+// ─── Database & server startup ───────────────────────────────
+async function startServer() {
+  // Start HTTP & WebSocket server immediately so Render health checks pass
+  server.listen(config.port, config.host, () => {
+    logger.info(
+      { port: config.port, host: config.host, env: config.env },
+      `Server is running on http://${config.host}:${config.port}`
+    );
+  });
+
+  // Attempt database connection
+  const connected = await connectAndSyncDatabase();
+  if (!connected) {
+    // Retry database connection periodically in the background
+    const retryInterval = setInterval(async () => {
+      const ok = await connectAndSyncDatabase();
+      if (ok) {
+        logger.info('Database connected successfully during retry');
+        clearInterval(retryInterval);
+      }
+    }, 15000);
+    retryInterval.unref();
   }
 }
 
