@@ -11,14 +11,20 @@ const DataTable = ({
 }) => {
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-card overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+      <div className="overflow-x-auto touch-scroll">
+        <table className="w-full min-w-[640px] text-left border-collapse">
           <thead>
             <tr className="bg-surface-secondary border-b border-gray-100 text-[11px] font-semibold text-content-secondary uppercase tracking-wider">
               {columns.map((col, idx) => (
                 <th
                   key={idx}
-                  className={`py-3.5 px-4 ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'} ${col.className || ''}`}
+                  className={`py-3 px-3 sm:py-3.5 sm:px-4 ${
+                    col.align === 'right'
+                      ? 'text-right'
+                      : col.align === 'center'
+                      ? 'text-center'
+                      : 'text-left'
+                  } ${col.className || ''}`}
                 >
                   {col.header}
                 </th>
@@ -47,7 +53,13 @@ const DataTable = ({
                   {columns.map((col, colIdx) => (
                     <td
                       key={colIdx}
-                      className={`py-3.5 px-4 text-content-primary ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'} ${col.className || ''}`}
+                      className={`py-3 px-3 sm:py-3.5 sm:px-4 text-content-primary ${
+                        col.align === 'right'
+                          ? 'text-right'
+                          : col.align === 'center'
+                          ? 'text-center'
+                          : 'text-left'
+                      } ${col.className || ''}`}
                     >
                       {col.render ? col.render(row, rowIdx) : row[col.accessor]}
                     </td>

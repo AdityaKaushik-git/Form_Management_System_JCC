@@ -42,7 +42,7 @@ const StudentLogin = () => {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-6 sm:p-8">
+    <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-5 sm:p-8">
       <div className="text-center mb-6">
         <h2 className="text-xl font-bold text-content-primary">Student Login</h2>
         <p className="text-xs text-content-muted mt-1">
@@ -109,7 +109,8 @@ const StudentLogin = () => {
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-[34px] text-content-muted hover:text-content-primary"
+            className="absolute right-1 top-[28px] p-2 text-content-muted hover:text-content-primary touch-manipulation min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg hover:bg-gray-100"
+            aria-label="Toggle password visibility"
           >
             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>

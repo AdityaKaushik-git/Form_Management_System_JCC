@@ -23,12 +23,12 @@ const Textarea = forwardRef(({
         ref={ref}
         id={textareaId}
         rows={rows}
-        className={`block w-full text-sm rounded-lg border transition-colors bg-white text-content-primary placeholder-content-muted p-3 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 ${
+        className={`block w-full text-base sm:text-sm rounded-lg border transition-colors bg-white text-content-primary placeholder-content-muted p-3 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 touch-manipulation ${
           error ? 'border-red-300' : 'border-gray-200 hover:border-gray-300'
         } ${className}`}
         {...props}
       />
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-xs text-red-600 font-medium">{error}</p>}
       {helperText && !error && <p className="mt-1 text-xs text-content-muted">{helperText}</p>}
     </div>
   );

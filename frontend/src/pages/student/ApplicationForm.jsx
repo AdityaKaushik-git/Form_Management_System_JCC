@@ -296,7 +296,7 @@ const ApplicationForm = () => {
           </div>
 
           <div className="pt-4 flex justify-end">
-            <Button onClick={() => setCurrentStep(2)}>
+            <Button onClick={() => setCurrentStep(2)} className="w-full sm:w-auto">
               Confirm & Continue
               <ArrowRight className="w-4 h-4" />
             </Button>
@@ -401,12 +401,12 @@ const ApplicationForm = () => {
             </div>
           )}
 
-          <div className="pt-4 flex items-center justify-between border-t border-gray-100">
-            <Button variant="outline" onClick={() => setCurrentStep(1)}>
+          <div className="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t border-gray-100">
+            <Button variant="outline" onClick={() => setCurrentStep(1)} className="w-full sm:w-auto">
               <ArrowLeft className="w-4 h-4" />
               Back
             </Button>
-            <Button onClick={handleNextFromStep2}>
+            <Button onClick={handleNextFromStep2} className="w-full sm:w-auto">
               Continue to Subject Selection
               <ArrowRight className="w-4 h-4" />
             </Button>
@@ -451,8 +451,8 @@ const ApplicationForm = () => {
                   <div
                     key={sub.id}
                     onClick={() => toggleSubject(sub.id)}
-                    className={`p-4 flex items-center justify-between cursor-pointer transition-colors ${
-                      isChecked ? 'bg-primary-50/50' : 'hover:bg-gray-50'
+                    className={`p-3.5 sm:p-4 flex items-center justify-between cursor-pointer transition-colors touch-manipulation select-none active:bg-primary-100/60 ${
+                      isChecked ? 'bg-primary-50/70 border-l-4 border-l-primary-500' : 'hover:bg-gray-50'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -476,12 +476,12 @@ const ApplicationForm = () => {
             </div>
           )}
 
-          <div className="pt-4 flex items-center justify-between border-t border-gray-100">
-            <Button variant="outline" onClick={() => setCurrentStep(2)}>
+          <div className="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t border-gray-100">
+            <Button variant="outline" onClick={() => setCurrentStep(2)} className="w-full sm:w-auto">
               <ArrowLeft className="w-4 h-4" />
               Back
             </Button>
-            <Button onClick={handleNextFromStep3}>
+            <Button onClick={handleNextFromStep3} className="w-full sm:w-auto">
               Review Application
               <ArrowRight className="w-4 h-4" />
             </Button>
@@ -506,7 +506,7 @@ const ApplicationForm = () => {
             <h4 className="font-bold text-content-primary uppercase text-[11px] tracking-wider mb-2">
               Applicant Details
             </h4>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div>
                 <span className="text-content-muted block">Student Name:</span>
                 <span className="font-semibold text-content-primary">{user?.fullName}</span>
@@ -521,7 +521,7 @@ const ApplicationForm = () => {
               </div>
               <div>
                 <span className="text-content-muted block">Mobile:</span>
-                <span className="font-semibold text-content-primary">{profile?.mobile}</span>
+                <span className="font-semibold text-content-primary">{fieldValues.mobile || fieldValues.phone || profile?.mobile || 'N/A'}</span>
               </div>
             </div>
           </div>
@@ -531,11 +531,11 @@ const ApplicationForm = () => {
             <h4 className="font-bold text-content-primary uppercase text-[11px] tracking-wider mb-2">
               Selected Reappear Subjects ({selectedSubjects.length})
             </h4>
-            <ul className="space-y-1.5">
+            <ul className="space-y-1.5 divide-y divide-gray-100">
               {formSubjects
                 .filter((s) => selectedSubjects.includes(s.id))
                 .map((s) => (
-                  <li key={s.id} className="flex items-center justify-between font-medium text-content-primary">
+                  <li key={s.id} className="pt-1.5 flex items-center justify-between font-medium text-content-primary">
                     <span>{s.name}</span>
                     <span className="font-mono text-xs text-content-muted">{s.code}</span>
                   </li>
@@ -543,12 +543,12 @@ const ApplicationForm = () => {
             </ul>
           </div>
 
-          <div className="pt-4 flex items-center justify-between border-t border-gray-100">
-            <Button variant="outline" onClick={() => setCurrentStep(3)} disabled={isSubmitting}>
+          <div className="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t border-gray-100">
+            <Button variant="outline" onClick={() => setCurrentStep(3)} disabled={isSubmitting} className="w-full sm:w-auto">
               <ArrowLeft className="w-4 h-4" />
               Back
             </Button>
-            <Button onClick={handleFinalSubmit} isLoading={isSubmitting}>
+            <Button onClick={handleFinalSubmit} isLoading={isSubmitting} className="w-full sm:w-auto">
               Confirm & Submit Application
             </Button>
           </div>
@@ -557,7 +557,7 @@ const ApplicationForm = () => {
 
       {/* STEP 5: Success & Receipt Download */}
       {currentStep === 5 && submissionResult && (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-card p-8 text-center space-y-6">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-card p-6 sm:p-8 text-center space-y-6">
           <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-10 h-10" />
           </div>
@@ -566,7 +566,7 @@ const ApplicationForm = () => {
             <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider">
               Application Successfully Saved
             </span>
-            <h2 className="text-2xl font-extrabold text-content-primary mt-1">
+            <h2 className="text-xl sm:text-2xl font-extrabold text-content-primary mt-1">
               Submission Confirmed
             </h2>
             <p className="text-xs text-content-muted mt-1">
@@ -574,21 +574,21 @@ const ApplicationForm = () => {
             </p>
           </div>
 
-          <div className="p-4 bg-primary-50/50 border border-primary-200 rounded-xl inline-block max-w-sm mx-auto text-center">
+          <div className="p-4 bg-primary-50/50 border border-primary-200 rounded-xl inline-block max-w-sm mx-auto text-center w-full">
             <span className="text-[11px] text-content-muted uppercase tracking-wider block">
               Application Reference Number
             </span>
-            <span className="text-lg font-mono font-bold text-primary-600 block mt-0.5">
+            <span className="text-lg font-mono font-bold text-primary-600 block mt-0.5 break-all">
               {submissionResult.referenceNumber}
             </span>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
-            <Button onClick={handleDownloadReceipt} icon={FileDown} size="lg">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 pt-4">
+            <Button onClick={handleDownloadReceipt} icon={FileDown} size="lg" className="w-full sm:w-auto">
               Download Official PDF Receipt
             </Button>
-            <Link to="/student/applications">
-              <Button variant="outline" size="lg">
+            <Link to="/student/applications" className="w-full sm:w-auto">
+              <Button variant="outline" size="lg" className="w-full sm:w-auto">
                 View My Applications
               </Button>
             </Link>

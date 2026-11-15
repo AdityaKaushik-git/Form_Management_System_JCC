@@ -5,6 +5,8 @@ node_modules/
 
 # Build
 build/
+dist/
+frontend/dist/
 
 # Environment
 .env

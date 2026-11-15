@@ -17,29 +17,31 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen bg-white flex flex-col justify-between">
       {/* Navbar */}
-      <header className="border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary-500 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+      <header className="border-b border-gray-100 bg-white/90 backdrop-blur-md sticky top-0 z-20 pt-safe gpu-layer">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary-500 flex items-center justify-center text-white font-bold text-base sm:text-lg shadow-xs shrink-0">
               JCC
             </div>
-            <div>
-              <h1 className="text-base font-bold text-content-primary leading-tight">
-                JCC, Rohini Sector 3, Delhi
+            <div className="min-w-0">
+              <h1 className="text-xs sm:text-base font-bold text-content-primary leading-tight truncate">
+                JCC, Rohini Sector 3
               </h1>
-              <p className="text-xs text-content-muted">Reappear Examination Form Management System</p>
+              <p className="text-[10px] sm:text-xs text-content-muted truncate">
+                Reappear Exam Management System
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             <Link to="/login">
-              <Button variant="outline" size="sm">
-                Student Login
+              <Button variant="outline" size="sm" className="px-2.5 sm:px-3 text-xs">
+                Student <span className="hidden sm:inline">Portal</span>
               </Button>
             </Link>
             <Link to="/admin/login">
-              <Button variant="primary" size="sm">
-                Admin Portal
+              <Button variant="primary" size="sm" className="px-2.5 sm:px-3 text-xs">
+                Admin <span className="hidden sm:inline">Portal</span>
               </Button>
             </Link>
           </div>
