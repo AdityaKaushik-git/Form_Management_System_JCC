@@ -38,6 +38,38 @@ const AdminLayout = () => {
     setIsSidebarOpen(false);
   }, [location.pathname]);
 
+  // Prevent background scrolling on mobile when sidebar is open and support Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    if (isSidebarOpen) {
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isSidebarOpen]);
+
+  // Reset sidebar state if viewport resized to desktop breakpoint
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsSidebarOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const toggleGroup = (key) => {
     setExpandedGroups((prev) => ({ ...prev, [key]: !prev[key] }));
   };
@@ -64,12 +96,13 @@ const AdminLayout = () => {
   return (
     <div className="min-h-screen bg-surface-secondary flex flex-col">
       {/* Top Header */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-30 px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between shadow-xs gpu-layer">
+      <header className="bg-white border-b border-gray-100 sticky top-0 z-30 px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between shadow-xs">
         <div className="flex items-center gap-2.5 sm:gap-3">
           <button
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="lg:hidden p-2 text-content-secondary hover:bg-gray-100 active:bg-gray-200 rounded-lg touch-manipulation min-w-[40px] min-h-[40px] flex items-center justify-center"
-            aria-label="Toggle menu"
+            type="button"
+            onClick={() => setIsSidebarOpen((prev) => !prev)}
+            className="lg:hidden p-2 text-content-secondary hover:bg-gray-100 active:bg-gray-200 rounded-lg touch-manipulation min-w-[40px] min-h-[40px] flex items-center justify-center focus:outline-none"
+            aria-label={isSidebarOpen ? 'Close menu' : 'Open menu'}
           >
             {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -119,28 +152,33 @@ const AdminLayout = () => {
         {/* Mobile Backdrop */}
         {isSidebarOpen && (
           <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-30 lg:hidden transition-opacity gpu-layer"
+            className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-40 lg:hidden transition-opacity"
             onClick={() => setIsSidebarOpen(false)}
+            aria-hidden="true"
           />
         )}
 
         {/* Sidebar */}
         <aside
-          className={`fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-100 flex flex-col transform transition-transform duration-200 ease-in-out lg:translate-x-0 pb-safe gpu-layer ${
-            isSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
+          className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-100 flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 pb-safe ${
+            isSidebarOpen
+              ? 'translate-x-0 shadow-2xl'
+              : '-translate-x-full pointer-events-none lg:pointer-events-auto'
           }`}
+          aria-label="Admin Navigation"
         >
           {/* Mobile Sidebar Header */}
           <div className="lg:hidden flex items-center justify-between p-4 border-b border-gray-100 shrink-0">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-primary-500 flex items-center justify-center text-white font-bold text-xs">
+              <div className="w-7 h-7 rounded-lg bg-primary-500 flex items-center justify-center text-white font-bold text-xs shadow-xs">
                 JCC
               </div>
               <span className="font-bold text-xs text-content-primary">Admin Navigation</span>
             </div>
             <button
+              type="button"
               onClick={() => setIsSidebarOpen(false)}
-              className="p-1.5 text-content-muted hover:text-content-primary rounded-lg hover:bg-gray-100 active:bg-gray-200 touch-manipulation"
+              className="p-2 text-content-muted hover:text-content-primary rounded-lg hover:bg-gray-100 active:bg-gray-200 touch-manipulation min-w-[40px] min-h-[40px] flex items-center justify-center focus:outline-none"
               aria-label="Close menu"
             >
               <X className="w-5 h-5" />
