@@ -475,7 +475,7 @@ export const downloadCurriculumTemplate = asyncHandler(async (_req, res) => {
 // Automated Examination Form Generation (Odd / Even Semester Rules)
 // ===========================================================================
 export const autoGenerateForms = asyncHandler(async (req, res) => {
-  const { sessionType, academicYear, examSession, courseId, batchId, isPermanentActive, startDate, endDate } = req.body;
+  const { sessionType, academicYear, examSession, courseId, batchId, isPermanentActive, startDate, endDate, googleSpreadsheetUrl } = req.body;
   const result = await autoGenerateExaminationForms({
     sessionType,
     academicYear,
@@ -485,6 +485,7 @@ export const autoGenerateForms = asyncHandler(async (req, res) => {
     isPermanentActive,
     startDate,
     endDate,
+    googleSpreadsheetUrl,
     adminId: req.user.id,
   });
   return ApiResponse.success(res, result, 'Examination forms automatically generated successfully');

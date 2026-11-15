@@ -13,6 +13,7 @@ import {
 import { ApiError } from '../utils/ApiError.js';
 import logger from '../utils/logger.js';
 import { emitToAll } from '../sockets/index.js';
+import { addSheetConfig } from './sheets.service.js';
 
 /**
  * ─────────────────────────────────────────────────────────────────────────────
@@ -37,6 +38,7 @@ export const autoGenerateExaminationForms = async ({
   isPermanentActive = true,
   startDate = new Date(),
   endDate,
+  googleSpreadsheetUrl,
 }) => {
   if (!['odd', 'even'].includes(sessionType.toLowerCase())) {
     throw new ApiError(400, 'sessionType must be either "odd" or "even"');
@@ -218,6 +220,18 @@ export const autoGenerateExaminationForms = async ({
 
       emitToAll('form:published', { formId: form.id, title: form.title });
     });
+
+    if (googleSpreadsheetUrl && googleSpreadsheetUrl.trim()) {
+      try {
+        await addSheetConfig(form.id, {
+          displayName: `${batch.name} Reappear Sheet`,
+          spreadsheetUrl: googleSpreadsheetUrl.trim(),
+          worksheetName: 'Sheet1',
+        });
+      } catch (sheetErr) {
+        logger.warn({ err: sheetErr.message, formId: form.id }, 'Could not automatically link Google Sheet during auto-gen');
+      }
+    }
   }
 
   logger.info(

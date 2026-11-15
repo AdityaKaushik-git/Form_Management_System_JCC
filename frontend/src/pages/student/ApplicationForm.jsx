@@ -41,10 +41,15 @@ const ApplicationForm = () => {
         const res = await studentService.getFormDetails(id);
         setForm(res.data);
 
-        // Prepopulate default field values
+        // Prepopulate default and verified student profile values
         const initialFields = {};
+        const prof = user?.studentProfile || {};
         (res.data?.fields || []).forEach((f) => {
           if (f.defaultValue) initialFields[f.fieldKey] = f.defaultValue;
+          if (f.fieldKey === 'fullName' && user?.fullName) initialFields[f.fieldKey] = user.fullName;
+          if (f.fieldKey === 'enrollmentNumber' && prof?.enrollmentNumber) initialFields[f.fieldKey] = prof.enrollmentNumber;
+          if (f.fieldKey === 'email' && user?.email) initialFields[f.fieldKey] = user.email;
+          if ((f.fieldKey === 'mobile' || f.fieldKey === 'phone') && prof?.mobile) initialFields[f.fieldKey] = prof.mobile;
         });
         setFieldValues(initialFields);
       } catch (err) {
@@ -103,6 +108,28 @@ const ApplicationForm = () => {
       const val = fieldValues[f.fieldKey];
       if (f.isRequired && (val === undefined || val === null || val === '')) {
         errors[f.fieldKey] = `${f.fieldLabel} is required`;
+        return;
+      }
+
+      if (val !== undefined && val !== null && val !== '') {
+        // Indian 10-digit mobile validation
+        if (f.fieldType === 'mobile' || f.fieldKey === 'mobile' || f.fieldKey === 'phone') {
+          if (!/^[6-9]\d{9}$/.test(String(val).trim())) {
+            errors[f.fieldKey] = 'Enter a valid 10-digit mobile number (e.g. 9876543210)';
+          }
+        }
+        // Email validation
+        if (f.fieldType === 'email' || f.fieldKey === 'email') {
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(val).trim())) {
+            errors[f.fieldKey] = 'Enter a valid email address';
+          }
+        }
+        // Mandatory checkbox declaration
+        if (f.fieldType === 'checkbox' && f.isRequired) {
+          if (val !== true && val !== 'true') {
+            errors[f.fieldKey] = 'You must confirm the official declaration';
+          }
+        }
       }
     });
 
@@ -329,14 +356,42 @@ const ApplicationForm = () => {
                   );
                 }
 
+                if (field.fieldType === 'checkbox') {
+                  const isChecked = val === true || val === 'true';
+                  return (
+                    <div key={field.fieldKey} className="space-y-1">
+                      <label className="flex items-start gap-3 p-3.5 rounded-xl border border-gray-200 bg-gray-50/40 hover:bg-gray-50 cursor-pointer transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => handleFieldChange(field.fieldKey, e.target.checked)}
+                          className="mt-0.5 w-4 h-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+                        />
+                        <div className="text-xs">
+                          <span className="font-semibold text-content-primary block">
+                            {field.fieldLabel} {field.isRequired && <span className="text-red-500">*</span>}
+                          </span>
+                          {field.description && (
+                            <span className="text-[11px] text-content-muted block mt-0.5">{field.description}</span>
+                          )}
+                        </div>
+                      </label>
+                      {err && <p className="text-[11px] text-red-600 pl-1 font-medium">{err}</p>}
+                    </div>
+                  );
+                }
+
+                const isLockedIdentity = field.fieldKey === 'enrollmentNumber';
+
                 return (
                   <Input
                     key={field.fieldKey}
                     label={field.fieldLabel}
                     required={field.isRequired}
+                    disabled={isLockedIdentity}
                     type={field.fieldType === 'number' ? 'number' : field.fieldType === 'email' ? 'email' : 'text'}
                     placeholder={field.placeholder || ''}
-                    helperText={field.description}
+                    helperText={isLockedIdentity ? 'Verified Student Record (Locked)' : field.description}
                     value={val}
                     error={err}
                     onChange={(e) => handleFieldChange(field.fieldKey, e.target.value)}

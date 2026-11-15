@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { Link } from 'react-router-dom';
 import { adminService } from '../../services/admin.service.js';
 import DataTable from '../../components/common/DataTable.jsx';
 import Button from '../../components/common/Button.jsx';
@@ -8,7 +9,7 @@ import Textarea from '../../components/common/Textarea.jsx';
 import Modal from '../../components/common/Modal.jsx';
 import Badge from '../../components/common/Badge.jsx';
 import ConfirmDialog from '../../components/common/ConfirmDialog.jsx';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Zap, FileSpreadsheet, CheckCircle2 } from 'lucide-react';
 
 const CoursesList = () => {
   const [courses, setCourses] = useState([]);
@@ -18,6 +19,8 @@ const CoursesList = () => {
   const [editingCourse, setEditingCourse] = useState(null);
   const [deletingCourse, setDeletingCourse] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [quickLoadLoading, setQuickLoadLoading] = useState(false);
+  const [quickLoadMessage, setQuickLoadMessage] = useState('');
   const [formError, setFormError] = useState('');
 
   const { register, handleSubmit, reset, setValue } = useForm();
@@ -99,6 +102,21 @@ const CoursesList = () => {
     }
   };
 
+  const handleQuickLoad = async () => {
+    try {
+      setQuickLoadLoading(true);
+      setQuickLoadMessage('');
+      await adminService.provisionTestStudent();
+      setQuickLoadMessage('Standard JCC Curriculum (BCA & BBA, Batches, Semesters & Subjects) loaded successfully!');
+      fetchCourses();
+      setTimeout(() => setQuickLoadMessage(''), 5000);
+    } catch (err) {
+      console.error('Failed to load standard curriculum:', err);
+    } finally {
+      setQuickLoadLoading(false);
+    }
+  };
+
   const columns = [
     {
       header: 'Course Code',
@@ -172,10 +190,39 @@ const CoursesList = () => {
             Configure degree programs and courses offered at JCC (BCA, MCA, B.Tech, etc.)
           </p>
         </div>
-        <Button onClick={openCreateModal} icon={Plus} size="sm">
-          Add New Course
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={handleQuickLoad}
+            variant="outline"
+            size="sm"
+            icon={Zap}
+            isLoading={quickLoadLoading}
+            className="border-amber-200 text-amber-800 hover:bg-amber-50"
+          >
+            ⚡ Load Standard JCC Courses
+          </Button>
+          <Link to="/admin/subjects">
+            <Button
+              variant="outline"
+              size="sm"
+              icon={FileSpreadsheet}
+              className="border-emerald-200 text-emerald-800 hover:bg-emerald-50"
+            >
+              Excel Bulk Import
+            </Button>
+          </Link>
+          <Button onClick={openCreateModal} icon={Plus} size="sm">
+            Add New Course
+          </Button>
+        </div>
       </div>
+
+      {quickLoadMessage && (
+        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>{quickLoadMessage}</span>
+        </div>
+      )}
 
       <DataTable
         columns={columns}

@@ -8,6 +8,7 @@ import {
   ApplicationStatusHistory,
   ExaminationForm,
   ExaminationFormField,
+  ExaminationFormSubject,
   Subject,
   User,
   StudentProfile,
@@ -68,10 +69,15 @@ export const submitApplication = async (studentUserId, { formId, fieldValues = {
     throw new ApiError(400, 'Please select at least one reappear subject');
   }
 
-  // Verify subjects exist
-  const subjects = await Subject.findAll({ where: { id: subjectIds } });
-  if (subjects.length !== subjectIds.length) {
-    throw new ApiError(400, 'One or more selected subjects are invalid');
+  // Verify subjects exist and are eligible for this specific examination form
+  const validFormSubjects = await ExaminationFormSubject.findAll({
+    where: { formId, subjectId: subjectIds },
+  });
+  if (validFormSubjects.length !== subjectIds.length) {
+    throw new ApiError(
+      400,
+      'One or more selected subjects are not eligible for this examination cycle'
+    );
   }
 
   // 5. Validate dynamic fields against form definition

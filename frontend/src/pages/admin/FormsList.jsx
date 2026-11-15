@@ -39,6 +39,7 @@ const FormsList = () => {
   const [autoCourseId, setAutoCourseId] = useState('');
   const [autoBatchId, setAutoBatchId] = useState('');
   const [autoPermanentActive, setAutoPermanentActive] = useState(true);
+  const [autoSpreadsheetUrl, setAutoSpreadsheetUrl] = useState('');
   const [autoGenerating, setAutoGenerating] = useState(false);
   const [autoError, setAutoError] = useState('');
   const [autoSuccessResult, setAutoSuccessResult] = useState(null);
@@ -116,6 +117,7 @@ const FormsList = () => {
         courseId: autoCourseId || undefined,
         batchId: autoBatchId || undefined,
         isPermanentActive: autoPermanentActive,
+        googleSpreadsheetUrl: autoSpreadsheetUrl || undefined,
       });
 
       setAutoSuccessResult(res.data);
@@ -189,6 +191,18 @@ const FormsList = () => {
         <span className="font-mono text-xs font-bold text-content-primary">
           {row.totalSubmissions || 0}
         </span>
+      ),
+    },
+    {
+      header: 'Live Google Sheet',
+      accessor: 'sheets',
+      render: (row) => (
+        <Link to={`/admin/forms/${row.id}/sheets`} className="inline-flex items-center gap-1.5">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors">
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+            Connect / Sync Sheet
+          </span>
+        </Link>
       ),
     },
     {
@@ -502,6 +516,23 @@ const FormsList = () => {
                   className="w-full rounded-lg border border-gray-200 px-3 py-1.5 focus:border-primary-500 focus:outline-none"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block font-semibold text-content-primary mb-1 flex items-center justify-between">
+                <span>Google Spreadsheet Link (Optional)</span>
+                <span className="text-[10px] text-emerald-600 font-medium">Real-time sync on submission</span>
+              </label>
+              <input
+                type="url"
+                value={autoSpreadsheetUrl}
+                onChange={(e) => setAutoSpreadsheetUrl(e.target.value)}
+                placeholder="https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit"
+                className="w-full rounded-lg border border-gray-200 px-3 py-1.5 focus:border-primary-500 focus:outline-none"
+              />
+              <p className="text-[10px] text-content-muted mt-0.5">
+                Paste your Google Sheet link here to automatically sync every reappear submission into that sheet in real-time.
+              </p>
             </div>
 
             <div className="pt-1">
