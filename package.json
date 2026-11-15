@@ -1,0 +1,17 @@
+{
+  "name": "jcc-reappear-examination-system",
+  "version": "1.0.0",
+  "description": "JCC Reappear Examination Form Management System",
+  "private": true,
+  "scripts": {
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:worker": "cd backend && npm run worker:dev",
+    "build:frontend": "cd frontend && npm run build",
+    "install:all": "cd frontend && npm install && cd ../backend && npm install",
+    "migrate": "cd backend && npx sequelize-cli db:migrate",
+    "seed": "cd backend && npx sequelize-cli db:seed:all"
+  },
+  "author": "Aditya Kaushik",
+  "license": "ISC"
+}
