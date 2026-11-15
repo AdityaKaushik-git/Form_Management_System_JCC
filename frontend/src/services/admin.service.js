@@ -35,16 +35,22 @@ export const adminService = {
   createSubject: async (data) => (await api.post('/admin/subjects', data)).data,
   updateSubject: async (id, data) => (await api.put(`/admin/subjects/${id}`, data)).data,
   deleteSubject: async (id) => (await api.delete(`/admin/subjects/${id}`)).data,
+  importCurriculum: async (formData) =>
+    (await api.post('/admin/curriculum/import', formData, { headers: { 'Content-Type': 'multipart/form-data' } })).data,
+  downloadCurriculumTemplate: async () =>
+    (await api.get('/admin/curriculum/template', { responseType: 'blob' })).data,
 
   // Forms
   getForms: async (params) => (await api.get('/admin/forms', { params })).data,
   getFormById: async (id) => (await api.get(`/admin/forms/${id}`)).data,
   createForm: async (data) => (await api.post('/admin/forms', data)).data,
+  autoGenerateForms: async (data) => (await api.post('/admin/forms/auto-generate', data)).data,
   updateForm: async (id, data) => (await api.put(`/admin/forms/${id}`, data)).data,
   publishForm: async (id) => (await api.post(`/admin/forms/${id}/publish`)).data,
   closeForm: async (id) => (await api.post(`/admin/forms/${id}/close`)).data,
   reopenForm: async (id) => (await api.post(`/admin/forms/${id}/reopen`)).data,
   deleteForm: async (id) => (await api.delete(`/admin/forms/${id}`)).data,
+  provisionTestStudent: async () => (await api.post('/admin/students/provision-test')).data,
 
   // Submissions
   getSubmissions: async (params) => (await api.get('/admin/submissions', { params })).data,

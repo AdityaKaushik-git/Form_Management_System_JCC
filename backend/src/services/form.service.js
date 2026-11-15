@@ -261,14 +261,23 @@ export const getAvailableFormsForStudent = async (studentUserId) => {
   const profile = await StudentProfile.findOne({ where: { userId: studentUserId } });
   if (!profile) throw new ApiError(404, 'Student profile not found');
 
-  // Query published forms
+  // Query published forms matching student's course and batch
+  const whereConditions = [
+    {
+      [Op.or]: [{ courseId: null }, { courseId: profile.courseId }],
+    },
+  ];
+
+  if (profile.batchId) {
+    whereConditions.push({
+      [Op.or]: [{ batchId: null }, { batchId: profile.batchId }],
+    });
+  }
+
   const forms = await ExaminationForm.findAll({
     where: {
       isPublished: true,
-      [Op.or]: [
-        { courseId: null },
-        { courseId: profile.courseId },
-      ],
+      [Op.and]: whereConditions,
     },
     include: [
       { model: Course, as: 'course' },

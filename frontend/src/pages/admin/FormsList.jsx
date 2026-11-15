@@ -4,6 +4,7 @@ import { adminService } from '../../services/admin.service.js';
 import DataTable from '../../components/common/DataTable.jsx';
 import Button from '../../components/common/Button.jsx';
 import Badge from '../../components/common/Badge.jsx';
+import Modal from '../../components/common/Modal.jsx';
 import ConfirmDialog from '../../components/common/ConfirmDialog.jsx';
 import { formatDateTime } from '../../utils/helpers.js';
 import {
@@ -11,11 +12,15 @@ import {
   Edit2,
   FileSpreadsheet,
   CheckCircle,
+  CheckCircle2,
   XCircle,
   RotateCcw,
   Eye,
   FileCheck2,
   Trash2,
+  Zap,
+  Sparkles,
+  AlertCircle,
 } from 'lucide-react';
 
 const FormsList = () => {
@@ -23,6 +28,20 @@ const FormsList = () => {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+
+  // Auto-Generate Forms Modal state
+  const [isAutoModalOpen, setIsAutoModalOpen] = useState(false);
+  const [courses, setCourses] = useState([]);
+  const [batches, setBatches] = useState([]);
+  const [autoSessionType, setAutoSessionType] = useState('odd');
+  const [autoAcademicYear, setAutoAcademicYear] = useState('2026-2027');
+  const [autoExamSession, setAutoExamSession] = useState('');
+  const [autoCourseId, setAutoCourseId] = useState('');
+  const [autoBatchId, setAutoBatchId] = useState('');
+  const [autoPermanentActive, setAutoPermanentActive] = useState(true);
+  const [autoGenerating, setAutoGenerating] = useState(false);
+  const [autoError, setAutoError] = useState('');
+  const [autoSuccessResult, setAutoSuccessResult] = useState(null);
 
   // Modal actions
   const [activeAction, setActiveAction] = useState(null); // { type: 'publish' | 'close' | 'reopen' | 'delete', form: object }
@@ -64,6 +83,47 @@ const FormsList = () => {
       console.error(`Failed to ${type} form:`, err);
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const openAutoGenerateModal = async () => {
+    setAutoError('');
+    setAutoSuccessResult(null);
+    setIsAutoModalOpen(true);
+    try {
+      const [cRes, bRes] = await Promise.all([
+        adminService.getCourses(),
+        adminService.getBatches(),
+      ]);
+      setCourses(cRes.data || []);
+      setBatches(bRes.data || []);
+    } catch (err) {
+      console.error('Failed to load metadata for auto-generate:', err);
+    }
+  };
+
+  const handleAutoGenerateSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setAutoGenerating(true);
+      setAutoError('');
+      setAutoSuccessResult(null);
+
+      const res = await adminService.autoGenerateForms({
+        sessionType: autoSessionType,
+        academicYear: autoAcademicYear,
+        examSession: autoExamSession || undefined,
+        courseId: autoCourseId || undefined,
+        batchId: autoBatchId || undefined,
+        isPermanentActive: autoPermanentActive,
+      });
+
+      setAutoSuccessResult(res.data);
+      fetchForms();
+    } catch (err) {
+      setAutoError(err.response?.data?.message || 'Failed to auto-generate examination forms.');
+    } finally {
+      setAutoGenerating(false);
     }
   };
 
@@ -211,11 +271,22 @@ const FormsList = () => {
             Manage dynamic examination forms, publication status, and scheduling windows
           </p>
         </div>
-        <Link to="/admin/forms/create">
-          <Button icon={Plus} size="sm">
-            Create Examination Form
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={openAutoGenerateModal}
+            variant="outline"
+            size="sm"
+            className="border-primary-200 text-primary-700 hover:bg-primary-50 font-semibold"
+            icon={Zap}
+          >
+            ⚡ Auto-Generate Forms
           </Button>
-        </Link>
+          <Link to="/admin/forms/create">
+            <Button icon={Plus} size="sm">
+              Create Examination Form
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Status Filter Tab Pills */}
@@ -279,6 +350,195 @@ const FormsList = () => {
           }
         />
       )}
+
+      {/* Automated Form Generator Modal */}
+      <Modal
+        isOpen={isAutoModalOpen}
+        onClose={() => setIsAutoModalOpen(false)}
+        title="⚡ Automated Examination Form Generator"
+      >
+        <div className="space-y-4">
+          <div className="p-3.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl text-xs space-y-1.5">
+            <div className="flex items-center gap-2 font-bold text-amber-900">
+              <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>JCC Automatic Semester Progression & Eligibility Rules</span>
+            </div>
+            <p className="text-amber-800 text-[11px] leading-relaxed">
+              • <strong>Odd Semester Sessions:</strong> Students (e.g. Batch 2024–2027) are strictly eligible for <strong>Semesters 1, 3, 5, 7</strong> reappear subjects.<br />
+              • <strong>Even Semester Sessions:</strong> Students are strictly eligible for <strong>Semesters 2, 4, 6, 8</strong> reappear subjects.<br />
+              Forms, eligible subjects, and default dynamic fields will be generated and published automatically.
+            </p>
+          </div>
+
+          {autoError && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-600 flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 text-red-500 mt-0.5" />
+              <span>{autoError}</span>
+            </div>
+          )}
+
+          {autoSuccessResult && (
+            <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 space-y-2">
+              <div className="flex items-center gap-1.5 font-bold text-emerald-800">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Generated {autoSuccessResult.formsCreated} Examination Form(s) Successfully!</span>
+              </div>
+              <ul className="list-disc list-inside space-y-1 text-[11px] text-emerald-800 max-h-36 overflow-y-auto pl-1">
+                {(autoSuccessResult.forms || []).map((f) => (
+                  <li key={f.id} className="truncate">
+                    <strong>{f.title}</strong> ({f.course?.shortName || 'Course'} - {f.batch?.name || 'All Batches'})
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <form onSubmit={handleAutoGenerateSubmit} className="space-y-3.5 text-xs">
+            <div>
+              <label className="block font-semibold text-content-primary mb-1">
+                Session Type & Semester Eligibility *
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <label
+                  className={`flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition-all ${
+                    autoSessionType === 'odd'
+                      ? 'border-primary-500 bg-primary-50/50 text-primary-900 font-bold'
+                      : 'border-gray-200 hover:bg-gray-50 text-content-secondary'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="sessionType"
+                    value="odd"
+                    checked={autoSessionType === 'odd'}
+                    onChange={() => setAutoSessionType('odd')}
+                    className="text-primary-600 focus:ring-primary-500"
+                  />
+                  <span>Odd Semesters (1, 3, 5, 7)</span>
+                </label>
+
+                <label
+                  className={`flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition-all ${
+                    autoSessionType === 'even'
+                      ? 'border-primary-500 bg-primary-50/50 text-primary-900 font-bold'
+                      : 'border-gray-200 hover:bg-gray-50 text-content-secondary'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="sessionType"
+                    value="even"
+                    checked={autoSessionType === 'even'}
+                    onChange={() => setAutoSessionType('even')}
+                    className="text-primary-600 focus:ring-primary-500"
+                  />
+                  <span>Even Semesters (2, 4, 6, 8)</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block font-semibold text-content-primary mb-1">
+                  Academic Year *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={autoAcademicYear}
+                  onChange={(e) => setAutoAcademicYear(e.target.value)}
+                  placeholder="e.g. 2026-2027"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-1.5 focus:border-primary-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-content-primary mb-1">
+                  Target Course
+                </label>
+                <select
+                  value={autoCourseId}
+                  onChange={(e) => setAutoCourseId(e.target.value)}
+                  className="w-full rounded-lg border border-gray-200 px-3 py-1.5 focus:border-primary-500 focus:outline-none bg-white"
+                >
+                  <option value="">All Active Courses</option>
+                  {courses.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.shortName} - {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block font-semibold text-content-primary mb-1">
+                  Target Batch
+                </label>
+                <select
+                  value={autoBatchId}
+                  onChange={(e) => setAutoBatchId(e.target.value)}
+                  className="w-full rounded-lg border border-gray-200 px-3 py-1.5 focus:border-primary-500 focus:outline-none bg-white"
+                >
+                  <option value="">All Active Batches</option>
+                  {batches.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name} ({b.course?.shortName || 'Course'})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-content-primary mb-1">
+                  Custom Session Name (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={autoExamSession}
+                  onChange={(e) => setAutoExamSession(e.target.value)}
+                  placeholder="e.g. Odd Sem Reappear 2026"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-1.5 focus:border-primary-500 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="pt-1">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={autoPermanentActive}
+                  onChange={(e) => setAutoPermanentActive(e.target.checked)}
+                  className="rounded border-gray-300 text-primary-600 focus:ring-primary-500 w-4 h-4"
+                />
+                <span className="font-medium text-content-primary">
+                  Permanent Active Mode (Form remains open indefinitely until manually closed)
+                </span>
+              </label>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => setIsAutoModalOpen(false)}
+                disabled={autoGenerating}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                isLoading={autoGenerating}
+                icon={Zap}
+                className="bg-primary-600 hover:bg-primary-700"
+              >
+                Auto-Generate & Publish Forms
+              </Button>
+            </div>
+          </form>
+        </div>
+      </Modal>
     </div>
   );
 };

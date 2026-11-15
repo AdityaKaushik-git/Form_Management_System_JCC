@@ -8,7 +8,17 @@ import Select from '../../components/common/Select.jsx';
 import Modal from '../../components/common/Modal.jsx';
 import Badge from '../../components/common/Badge.jsx';
 import ConfirmDialog from '../../components/common/ConfirmDialog.jsx';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { downloadBlob } from '../../utils/helpers.js';
+import {
+  Plus,
+  Edit2,
+  Trash2,
+  FileSpreadsheet,
+  Download,
+  Upload,
+  CheckCircle,
+  AlertCircle,
+} from 'lucide-react';
 
 const SubjectsList = () => {
   const [subjects, setSubjects] = useState([]);
@@ -21,6 +31,14 @@ const SubjectsList = () => {
   const [deletingSubject, setDeletingSubject] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [formError, setFormError] = useState('');
+
+  // Bulk Import Excel state
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [importFile, setImportFile] = useState(null);
+  const [importLoading, setImportLoading] = useState(false);
+  const [templateLoading, setTemplateLoading] = useState(false);
+  const [importResult, setImportResult] = useState(null);
+  const [importError, setImportError] = useState('');
 
   // Course & Semester filters
   const [selectedCourseFilter, setSelectedCourseFilter] = useState('');
@@ -103,6 +121,59 @@ const SubjectsList = () => {
       setFormError(err.response?.data?.message || 'Failed to save subject');
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const openImportModal = () => {
+    setImportFile(null);
+    setImportResult(null);
+    setImportError('');
+    setIsImportModalOpen(true);
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      setTemplateLoading(true);
+      const blob = await adminService.downloadCurriculumTemplate();
+      downloadBlob(blob, 'JCC_Curriculum_Syllabus_Template.xlsx');
+    } catch (err) {
+      console.error('Failed to download template:', err);
+      setImportError('Failed to download syllabus template. Please try again.');
+    } finally {
+      setTemplateLoading(false);
+    }
+  };
+
+  const handleImportSubmit = async (e) => {
+    e.preventDefault();
+    if (!importFile) {
+      setImportError('Please select a valid Excel file (.xlsx or .xls) to upload.');
+      return;
+    }
+
+    try {
+      setImportLoading(true);
+      setImportError('');
+      setImportResult(null);
+
+      const formData = new FormData();
+      formData.append('file', importFile);
+
+      const res = await adminService.importCurriculum(formData);
+      setImportResult(res.data);
+
+      // Refresh metadata and subjects
+      const [cRes, sRes] = await Promise.all([
+        adminService.getCourses(),
+        adminService.getSemesters(),
+      ]);
+      setCourses(cRes.data || []);
+      setSemesters(sRes.data || []);
+      fetchSubjects();
+    } catch (err) {
+      setImportError(err.response?.data?.message || 'Failed to import curriculum Excel file.');
+    } finally {
+      setImportLoading(false);
     }
   };
 
@@ -201,9 +272,20 @@ const SubjectsList = () => {
             Manage course curriculum subjects, codes, credits, and semester assignments
           </p>
         </div>
-        <Button onClick={openCreateModal} icon={Plus} size="sm">
-          Add New Subject
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={openImportModal}
+            variant="outline"
+            size="sm"
+            className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+            icon={FileSpreadsheet}
+          >
+            Import Syllabus Excel
+          </Button>
+          <Button onClick={openCreateModal} icon={Plus} size="sm">
+            Add New Subject
+          </Button>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-card p-4 flex items-center justify-between">
@@ -305,6 +387,136 @@ const SubjectsList = () => {
           confirmText="Deactivate Subject"
         />
       )}
+
+      {/* Excel Bulk Import Modal */}
+      <Modal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        title="Import Curriculum & Syllabus via Excel"
+      >
+        <div className="space-y-4">
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-800 space-y-1">
+            <p className="font-semibold flex items-center gap-1.5">
+              <FileSpreadsheet className="w-4 h-4 text-blue-600" />
+              Automated Curriculum & Subject Ingestion
+            </p>
+            <p className="text-blue-700">
+              Upload your syllabus Excel file to instantly generate courses, batches (e.g. 2024–2027),
+              semesters (1–8), and subjects with credits and codes.
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-xl">
+            <div>
+              <p className="text-xs font-bold text-content-primary">Curriculum Excel Template</p>
+              <p className="text-[11px] text-content-muted">Pre-formatted with sample BCA and BBA syllabus rows</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              icon={Download}
+              isLoading={templateLoading}
+              onClick={handleDownloadTemplate}
+            >
+              Download Template
+            </Button>
+          </div>
+
+          {importError && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-600 flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 text-red-500 mt-0.5" />
+              <span>{importError}</span>
+            </div>
+          )}
+
+          {importResult && (
+            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 space-y-2">
+              <div className="flex items-center gap-1.5 font-bold text-emerald-800">
+                <CheckCircle className="w-4 h-4 text-emerald-600" />
+                <span>Curriculum Imported Successfully!</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
+                <div className="bg-white/80 p-2 rounded-lg border border-emerald-100">
+                  <span className="text-gray-500 block">Total Rows Processed:</span>
+                  <span className="font-bold text-sm text-content-primary">{importResult.totalRows}</span>
+                </div>
+                <div className="bg-white/80 p-2 rounded-lg border border-emerald-100">
+                  <span className="text-gray-500 block">Courses Created:</span>
+                  <span className="font-bold text-sm text-content-primary">{importResult.coursesCreated}</span>
+                </div>
+                <div className="bg-white/80 p-2 rounded-lg border border-emerald-100">
+                  <span className="text-gray-500 block">Batches Created:</span>
+                  <span className="font-bold text-sm text-content-primary">{importResult.batchesCreated}</span>
+                </div>
+                <div className="bg-white/80 p-2 rounded-lg border border-emerald-100">
+                  <span className="text-gray-500 block">Semesters Created:</span>
+                  <span className="font-bold text-sm text-content-primary">{importResult.semestersCreated}</span>
+                </div>
+                <div className="bg-white/80 p-2 rounded-lg border border-emerald-100">
+                  <span className="text-gray-500 block">Subjects Created:</span>
+                  <span className="font-bold text-sm text-content-primary">{importResult.subjectsCreated}</span>
+                </div>
+                <div className="bg-white/80 p-2 rounded-lg border border-emerald-100">
+                  <span className="text-gray-500 block">Subjects Updated:</span>
+                  <span className="font-bold text-sm text-content-primary">{importResult.subjectsUpdated}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <form onSubmit={handleImportSubmit} className="space-y-4 pt-1">
+            <div className="border-2 border-dashed border-gray-200 hover:border-primary-400 rounded-xl p-5 text-center transition-colors">
+              <Upload className="w-8 h-8 text-primary-500 mx-auto mb-2" />
+              <label className="cursor-pointer block">
+                <span className="text-xs font-semibold text-primary-600 hover:text-primary-700">
+                  Click to choose file
+                </span>{' '}
+                <span className="text-xs text-content-muted">or drag & drop</span>
+                <input
+                  type="file"
+                  accept=".xlsx, .xls"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setImportFile(file);
+                      setImportError('');
+                    }
+                  }}
+                />
+              </label>
+              <p className="text-[11px] text-content-muted mt-1">Accepts standard Excel .xlsx / .xls files</p>
+              {importFile && (
+                <div className="mt-3 p-2 bg-primary-50 rounded-lg text-xs font-medium text-primary-800 flex items-center justify-between">
+                  <span className="truncate max-w-xs">{importFile.name}</span>
+                  <span className="text-[10px] text-primary-600">
+                    {(importFile.size / 1024).toFixed(1)} KB
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => setIsImportModalOpen(false)}
+                disabled={importLoading}
+              >
+                Close
+              </Button>
+              <Button
+                type="submit"
+                isLoading={importLoading}
+                disabled={!importFile}
+                icon={Upload}
+              >
+                Upload & Ingest Curriculum
+              </Button>
+            </div>
+          </form>
+        </div>
+      </Modal>
     </div>
   );
 };

@@ -23,6 +23,7 @@ const AdminLogin = () => {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(adminLoginSchema),
@@ -57,6 +58,33 @@ const AdminLogin = () => {
           <span>{serverError}</span>
         </div>
       )}
+
+      {/* Demo Admin Credentials Box */}
+      <div className="mb-5 p-3.5 bg-amber-50/80 border border-amber-200 rounded-xl text-xs space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="font-bold text-amber-900 flex items-center gap-1.5">
+            <span className="inline-block w-2 h-2 rounded-full bg-amber-600 animate-pulse"></span>
+            Demo Administrator Credentials
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              setValue('email', 'admin@jcc.edu.in');
+              setValue('password', 'Admin@12345!');
+            }}
+            className="text-[11px] font-bold text-amber-800 hover:text-amber-900 bg-white px-2 py-0.5 rounded-md border border-amber-200 shadow-xs hover:bg-amber-50 transition-colors"
+          >
+            Auto-fill
+          </button>
+        </div>
+        <div className="text-[11px] text-amber-800 space-y-0.5 font-mono">
+          <div>Email: <strong className="font-bold text-amber-950">admin@jcc.edu.in</strong></div>
+          <div>Password: <strong className="font-bold text-amber-950">Admin@12345!</strong></div>
+        </div>
+        <p className="text-[10px] text-amber-700 pt-0.5 border-t border-amber-100">
+          Authorized Examination Branch • Rohini Sector 3
+        </p>
+      </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <Input

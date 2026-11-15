@@ -178,6 +178,15 @@ async function connectAndSyncDatabase() {
           logger.info({ email: adminEmail }, 'Initial admin account automatically provisioned');
         }
       }
+
+      // Provision initial test student (Rahul Sharma, 00115502024 / Student@12345!) and sample BCA curriculum
+      try {
+        const { provisionTestStudentAndCurriculum } = await import('./services/student-test.service.js');
+        await provisionTestStudentAndCurriculum();
+        logger.info('Test student account and sample BCA curriculum verified/provisioned');
+      } catch (testStudentErr) {
+        logger.warn({ err: testStudentErr.message }, 'Test student provisioning notice');
+      }
     } catch (syncErr) {
       logger.warn({ err: syncErr.message }, 'Database model sync warning');
     }

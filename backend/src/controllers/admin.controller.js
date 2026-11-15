@@ -441,3 +441,59 @@ export const updateSetting = asyncHandler(async (req, res) => {
   });
   return ApiResponse.success(res, setting, 'System setting updated');
 });
+
+// ===========================================================================
+// Curriculum Excel Import & Template
+// ===========================================================================
+import { importCurriculumFromExcel, generateCurriculumTemplate } from '../services/curriculum-import.service.js';
+import { autoGenerateExaminationForms } from '../services/form-autogen.service.js';
+import { provisionTestStudentAndCurriculum } from '../services/student-test.service.js';
+
+export const importCurriculum = asyncHandler(async (req, res) => {
+  if (!req.file || !req.file.buffer) {
+    throw new ApiError(400, 'Please upload a valid Excel file (.xlsx or .xls)');
+  }
+  const result = await importCurriculumFromExcel(req.file.buffer);
+  return ApiResponse.success(res, result, 'Curriculum imported successfully from Excel');
+});
+
+export const downloadCurriculumTemplate = asyncHandler(async (_req, res) => {
+  const workbook = await generateCurriculumTemplate();
+  res.setHeader(
+    'Content-Type',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  );
+  res.setHeader(
+    'Content-Disposition',
+    'attachment; filename="JCC_Curriculum_Syllabus_Template.xlsx"'
+  );
+  await workbook.xlsx.write(res);
+  res.end();
+});
+
+// ===========================================================================
+// Automated Examination Form Generation (Odd / Even Semester Rules)
+// ===========================================================================
+export const autoGenerateForms = asyncHandler(async (req, res) => {
+  const { sessionType, academicYear, examSession, courseId, batchId, isPermanentActive, startDate, endDate } = req.body;
+  const result = await autoGenerateExaminationForms({
+    sessionType,
+    academicYear,
+    examSession,
+    courseId,
+    batchId,
+    isPermanentActive,
+    startDate,
+    endDate,
+    adminId: req.user.id,
+  });
+  return ApiResponse.success(res, result, 'Examination forms automatically generated successfully');
+});
+
+// ===========================================================================
+// Test Student Provisioning
+// ===========================================================================
+export const provisionTestStudent = asyncHandler(async (_req, res) => {
+  const result = await provisionTestStudentAndCurriculum();
+  return ApiResponse.success(res, result, 'Test student and sample curriculum provisioned successfully');
+});

@@ -23,6 +23,7 @@ const StudentLogin = () => {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(loginSchema),
@@ -55,6 +56,33 @@ const StudentLogin = () => {
           <span>{serverError}</span>
         </div>
       )}
+
+      {/* Test Student Credentials Box */}
+      <div className="mb-5 p-3.5 bg-blue-50/80 border border-blue-200 rounded-xl text-xs space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="font-bold text-blue-900 flex items-center gap-1.5">
+            <span className="inline-block w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+            Test Student Credentials
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              setValue('enrollmentNumber', '00115502024');
+              setValue('password', 'Student@12345!');
+            }}
+            className="text-[11px] font-bold text-primary-600 hover:text-primary-700 bg-white px-2 py-0.5 rounded-md border border-blue-200 shadow-xs hover:bg-primary-50 transition-colors"
+          >
+            Auto-fill
+          </button>
+        </div>
+        <div className="text-[11px] text-blue-800 space-y-0.5 font-mono">
+          <div>Enrollment: <strong className="font-bold text-blue-950">00115502024</strong></div>
+          <div>Password: <strong className="font-bold text-blue-950">Student@12345!</strong></div>
+        </div>
+        <p className="text-[10px] text-blue-700 pt-0.5 border-t border-blue-100">
+          Rahul Sharma • BCA (Batch 2024–2027) • Sem 3 • Odd Sem Eligible (Sem 1, 3, 5)
+        </p>
+      </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <Input

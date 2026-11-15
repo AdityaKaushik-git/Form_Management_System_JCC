@@ -1,7 +1,14 @@
 import { Router } from 'express';
+import multer from 'multer';
 import { authenticate, authorize } from '../middleware/authMiddleware.js';
 import { validate } from '../middleware/validate.js';
 import * as adminCtrl from '../controllers/admin.controller.js';
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 15 * 1024 * 1024 },
+});
+
 import {
   createCourseSchema,
   updateCourseSchema,
@@ -38,6 +45,7 @@ router.get('/activity', adminCtrl.getRecentActivity);
 router.get('/students', adminCtrl.getAllStudents);
 router.get('/students/:id', adminCtrl.getStudentById);
 router.patch('/students/:id/status', validate(updateStudentStatusSchema), adminCtrl.updateStudentStatus);
+router.post('/students/provision-test', adminCtrl.provisionTestStudent);
 
 // ---------------------------------------------------------------------------
 // Academic Management: Courses
@@ -65,19 +73,22 @@ router.put('/semesters/:id', validate(updateSemesterSchema), adminCtrl.updateSem
 router.delete('/semesters/:id', adminCtrl.deleteSemester);
 
 // ---------------------------------------------------------------------------
-// Academic Management: Subjects
+// Academic Management: Subjects & Curriculum Import
 // ---------------------------------------------------------------------------
 router.get('/subjects', adminCtrl.getSubjects);
 router.post('/subjects', validate(createSubjectSchema), adminCtrl.createSubject);
 router.put('/subjects/:id', validate(updateSubjectSchema), adminCtrl.updateSubject);
 router.delete('/subjects/:id', adminCtrl.deleteSubject);
+router.post('/curriculum/import', upload.single('file'), adminCtrl.importCurriculum);
+router.get('/curriculum/template', adminCtrl.downloadCurriculumTemplate);
 
 // ---------------------------------------------------------------------------
-// Examination Forms
+// Examination Forms & Auto-Generation
 // ---------------------------------------------------------------------------
 router.get('/forms', adminCtrl.getForms);
 router.get('/forms/:id', adminCtrl.getFormById);
 router.post('/forms', validate(createFormSchema), adminCtrl.createForm);
+router.post('/forms/auto-generate', adminCtrl.autoGenerateForms);
 router.put('/forms/:id', validate(updateFormSchema), adminCtrl.updateForm);
 router.post('/forms/:id/publish', adminCtrl.publishForm);
 router.post('/forms/:id/close', adminCtrl.closeForm);
